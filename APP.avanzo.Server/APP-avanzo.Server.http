@@ -1,0 +1,9 @@
+@APP_avanzo.Server_HostAddress = http://localhost:5036
+
+GET {{APP_avanzo.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+
+

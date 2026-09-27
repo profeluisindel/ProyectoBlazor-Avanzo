@@ -1,0 +1,108 @@
+﻿@page "/Page_calcular"
+
+
+@using APP.avanzo.Client.datos
+
+<PageTitle>Calcular Promedio</PageTitle>
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-calculator"></i>
+                        Cálculo de Promedio
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <EditForm Model="@calcular" OnValidSubmit="@CalcularNota">
+                        <DataAnnotationsValidator />
+
+                 
+
+                        <!-- Materia -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"> Materia </label>
+                            <InputText @bind-Value="calcular.Materia" class="form-control"
+                                       placeholder="Ingrese la materia" />
+                        </div>
+
+
+                        <!-- Promedio INALL -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"> Promedio INALL Final, requisito para poder promediar es
+                                6.0 </label>
+                                <InputNumber @bind-Value="calcular.Promedio_Inall_Final" class="form-control"
+                                             placeholder="Ingrese el promedio" />
+                                <ValidationMessage For="@(() => calcular.Promedio_Inall_Final)" class="text-danger" />
+
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-grid gap-2 mt-4">
+
+                                <button type="submit" class="btn btn-primary"> <i class="bi bi-calculator"></i> Calcular
+                                </button>
+                                <button type="button" class="btn btn-secondary" @onclick="Limpiar"> <i
+                                    class="bi bi-arrow-counterclockwise"></i> Limpiar </button>
+
+                                </div>
+                                <!-- Promedio Avanzo -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold"> Promedio Avanzo Requerido </label>
+                                    <InputNumber @bind-Value="calcular.Promedio_Avanzo_Requerido" class="form-control"
+                                                 placeholder="00.000" />
+                                </div>
+
+                            </EditForm>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+@code {
+
+
+    protected override void OnAfterRender(bool cambio)
+    {
+        if (cambio)
+        {
+            //Calcular nota requerida verificamos si hay valor          
+
+            if (calcular.Promedio_Inall_Final>=0)
+            {
+                calcular.Promedio_Avanzo_Requerido = (float)Math.Ceiling((6 - (calcular.Promedio_Inall_Final * 0.85f)) / 0.15f);
+            }
+           
+        }
+    }
+    private Calcular calcular = new();
+
+    private void CalcularNota()
+    {
+
+        //Calcular nota requerida
+        calcular.Promedio_Avanzo_Requerido = (float)Math.Ceiling((6 - (calcular.Promedio_Inall_Final * 0.85f)) / 0.15f);
+
+        if (calcular.Promedio_Avanzo_Requerido <= 0)
+        {
+            calcular.Promedio_Avanzo_Requerido = 0;
+        }
+
+    }
+
+
+    private void Limpiar()
+    {
+        calcular = new Calcular();
+    }
+}

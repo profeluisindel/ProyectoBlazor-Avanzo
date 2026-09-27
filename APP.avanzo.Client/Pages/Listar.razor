@@ -1,0 +1,160 @@
+﻿@page "/listar"
+
+@using APP.avanzo.Client.datos
+
+
+@inject Calcular2Servicios CalculoService
+
+<PageTitle>Listado de estudiantes</PageTitle>
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header">
+            <h3 class="mb-0">Listado de estudiantes</h3>
+        </div>
+
+        <div class="card-body">
+
+            @if (cargando)
+            {
+                <div class="text-center p-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">
+                            Cargando...
+                        </span>
+                    </div>
+
+                    <p class="mt-2">
+                        Cargando información...
+                    </p>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(error))
+            {
+                <div class="alert alert-danger">
+                    @error
+                </div>
+            }
+            else if (calculos.Count == 0)
+            {
+                <div class="alert alert-info">
+                    No existen registros.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-striped table-hover">
+
+                        <thead class="table-dark">
+
+                            <tr>
+                               
+                                <th>Nombre</th>
+                                <th>Matemáticas</th>
+                                <th>Ciencias</th>
+                                <th>Sociales</th>
+                                <th>Lenguaje</th>
+                                <th>Promedio Final</th>
+                                <th>Estado</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in calculos)
+                            {
+                                <tr>                                
+
+                                    <td>
+                                        @item.Nombre
+                                    </td>
+
+                                    <td>
+                                        @item.Promedio_final_Mate.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        @item.Promedio_final_Ciencias.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        @item.Promedio_final_Sociales.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        @item.Promedio_final_Lenguaje.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            @item.Promedio_Final.ToString("0.00")
+                                        </strong>
+                                    </td>
+
+                                    <td>
+
+                                        @if (item.Estado)
+                                        {
+                                            <span class="badge bg-success">
+                                                Aprobado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                Reprobado
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    private List<Calcular2> calculos = new();
+
+    private bool cargando = true;
+
+    private string error = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            cargando = true;
+
+            calculos = await CalculoService.Listar();
+        }
+        catch (Exception ex)
+        {
+            error = $"Error al obtener los datos: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+}

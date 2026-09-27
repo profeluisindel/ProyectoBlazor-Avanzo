@@ -1,0 +1,14 @@
+|    Nº | Paso          | Qué hacemos                                     |
+| ----: | ------------- | ----------------------------------------------- |
+| **1** | Modelo        | Tener `Calcular2.cs` en el Client               |
+| **2** | HttpClient    | Configurar el cliente HTTP de Blazor - program  |
+| **3** | Servicio      | Crear una clase para consumir la API            |
+| **4** | GET           | Hacer la petición `GET /api/calculos`           |
+| **5** | Página        | Utilizar `Listar.razor` para mostrar los datos  |
+| **6** | Estado        | Controlar carga, error y resultados             |
+| **7** | Tabla         | Mostrar los registros en una tabla Bootstrap    |
+| **8** | POST          | Posteriormente enviar datos desde un formulario |
+| **9** | Actualización | Volver a consultar la API después del POST      |
+
+
+

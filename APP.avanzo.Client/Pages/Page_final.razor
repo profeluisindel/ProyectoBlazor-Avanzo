@@ -1,0 +1,597 @@
+﻿
+@page "/Page_final"
+
+@using APP.avanzo.Client.datos
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+
+<PageTitle>Cálculo de Promedios</PageTitle>
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white w-60">
+
+            <h3 class="mb-0">
+                <i class="bi bi-calculator"></i>
+                Cálculo de Promedios
+            </h3>
+
+        </div>
+
+        <div class="card-body card w-60">
+
+            <EditForm Model="@calcular2" OnValidSubmit="Guardar">
+
+                <DataAnnotationsValidator />
+
+                <div class="row g-3">
+
+                    <!-- ========================= -->
+                    <!-- NOMBRE -->
+                    <!-- ========================= -->
+
+                    <div class="col-12">
+
+                        <label class="form-label fw-bold">
+                            Nombre del estudiante
+                        </label>
+
+                        <InputText @bind-Value="calcular2.Nombre"
+                                   class="form-control"
+                                   placeholder="Ingrese el nombre del estudiante" />
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- MATEMÁTICAS -->
+                    <!-- ========================= -->
+
+                    <div class="col-12">
+
+                        <div class="card border-primary">
+
+                            <div class="card-header bg-primary text-white">
+
+                                <strong>Matemáticas</strong>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <!-- INALL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio INALL
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Inall_Mate"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                        <ValidationMessage For="@(() => calcular2.Promedio_Inall_Mate)" />
+
+                                    </div>
+
+
+                                    <!-- AVANZO -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Avanzo
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Avanzo_Mate"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                    </div>
+
+
+                                    <!-- FINAL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Final
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_final_Mate"
+                                                     class="form-control bg-light"
+                                                     readonly />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- CIENCIAS -->
+                    <!-- ========================= -->
+
+                    <div class="col-12">
+
+                        <div class="card border-success">
+
+                            <div class="card-header bg-success text-white">
+
+                                <strong>Ciencias</strong>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <!-- INALL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio INALL
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Inall_Ciencias"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                        <ValidationMessage For="@(() => calcular2.Promedio_Inall_Ciencias)" />
+
+                                    </div>
+
+
+                                    <!-- AVANZO -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Avanzo
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Avanzo_Ciencias"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                    </div>
+
+
+                                    <!-- FINAL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Final
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_final_Ciencias"
+                                                     class="form-control bg-light"
+                                                     readonly />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- SOCIALES -->
+                    <!-- ========================= -->
+
+                    <div class="col-12">
+
+                        <div class="card border-warning">
+
+                            <div class="card-header bg-warning">
+
+                                <strong>Sociales</strong>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <!-- INALL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio INALL
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Inall_Sociales"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                        <ValidationMessage For="@(() => calcular2.Promedio_Inall_Sociales)" />
+
+                                    </div>
+
+
+                                    <!-- AVANZO -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Avanzo
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Avanzo_Sociales"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                    </div>
+
+
+                                    <!-- FINAL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Final
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_final_Sociales"
+                                                     class="form-control bg-light"
+                                                     readonly />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- LENGUAJE -->
+                    <!-- ========================= -->
+
+                    <div class="col-12">
+
+                        <div class="card border-danger">
+
+                            <div class="card-header bg-danger text-white">
+
+                                <strong>Lenguaje</strong>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <!-- INALL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio INALL
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Inall_Lenguaje"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                        <ValidationMessage For="@(() => calcular2.Promedio_Inall_Lenguaje)" />
+
+                                    </div>
+
+
+                                    <!-- AVANZO -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Avanzo
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Avanzo_Lenguaje"
+                                                     class="form-control"
+                                                     step="0.1" />
+
+                                    </div>
+
+
+                                    <!-- FINAL -->
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Final
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_final_Lenguaje"
+                                                     class="form-control bg-light"
+                                                     readonly />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- RESULTADO GENERAL -->
+                    <!-- ========================= -->
+
+                    <div class="col-12 mt-4">
+
+                        <div class="card shadow-sm">
+
+                            <div class="card-header bg-dark text-white">
+
+                                <strong>Resultado General</strong>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <!-- PROMEDIO GENERAL -->
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label fw-bold">
+                                            Promedio Final General
+                                        </label>
+
+                                        <InputNumber @bind-Value="calcular2.Promedio_Final"
+                                                     class="form-control bg-light"
+                                                     readonly />
+
+                                    </div>
+
+
+                                    <!-- ESTADO -->
+
+                                    <div class="col-md-6">
+
+                                        <label class="form-label fw-bold">
+                                            Estado
+                                        </label>
+
+                                        <div class="form-control">
+
+                                            @if (calcular2.Estado)
+                                            {
+                                                <span class="text-success fw-bold">
+                                                    APROBADO
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger fw-bold">
+                                                    REPROBADO
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- BOTONES -->
+                    <!-- ========================= -->
+
+                    <div class="col-12 text-center mt-4">
+
+                        <!-- BOTÓN CALCULAR -->
+
+                        <button type="button"
+                                class="btn btn-primary btn-lg px-5 me-2"
+                                @onclick="Calcular">
+
+                            <i class="bi bi-calculator"></i>
+
+                            Calcular promedios
+
+                        </button>
+
+
+                        <!-- BOTÓN GUARDAR -->
+
+                        <button type="submit"
+                                class="btn btn-success btn-lg px-5"
+                                disabled="@(!calculado)">
+
+                            <i class="bi bi-database-add"></i>
+
+                            Guardar datos
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- ========================= -->
+                    <!-- MENSAJE -->
+                    <!-- ========================= -->
+
+                    @if (!string.IsNullOrEmpty(mensaje))
+                    {
+                        <div class="col-12">
+
+                            <div class="alert alert-success text-center mt-3">
+
+                                @mensaje
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    // ============================================
+    // MODELO
+    // ============================================
+
+    private Calcular2 calcular2 = new();
+
+
+    // ============================================
+    // VARIABLES
+    // ============================================
+
+    // Mensaje para informar al usuario
+    private string mensaje = "";
+
+    // Indica si ya se realizaron los cálculos
+    private bool calculado = false;
+
+
+    // ============================================
+    // GUARDAR DATOS
+    // ============================================
+
+    private async Task Guardar()
+    {
+        // Aquí NO se realiza Calcular().
+        // Los cálculos ya fueron realizados por
+        // el botón "Calcular promedios".
+
+        var respuesta = await Http.PostAsJsonAsync(
+            "api/calculos",
+            calcular2
+        );
+
+
+        // Verificar respuesta del servidor
+
+        if (respuesta.IsSuccessStatusCode)
+        {
+            mensaje = "Los datos fueron guardados correctamente.";
+
+            // Limpiar formulario para un nuevo registro
+            calcular2 = new();
+
+            // Volver a bloquear el botón Guardar
+            calculado = false;
+        }
+        else
+        {
+            mensaje = "Error al guardar los datos.";
+        }
+    }
+
+
+    // ============================================
+    // CALCULAR PROMEDIOS
+    // ============================================
+
+    private void Calcular()
+    {
+        // Matemáticas
+
+        calcular2.Promedio_final_Mate = MathF.Round(
+            (calcular2.Promedio_Inall_Mate * 0.85f) +
+            (calcular2.Promedio_Avanzo_Mate * 0.15f),
+            2
+        );
+
+
+        // Ciencias
+
+        calcular2.Promedio_final_Ciencias = MathF.Round(
+            (calcular2.Promedio_Inall_Ciencias * 0.85f) +
+            (calcular2.Promedio_Avanzo_Ciencias * 0.15f),
+            2
+        );
+
+
+        // Sociales
+
+        calcular2.Promedio_final_Sociales = MathF.Round(
+            (calcular2.Promedio_Inall_Sociales * 0.85f) +
+            (calcular2.Promedio_Avanzo_Sociales * 0.15f),
+            2
+        );
+
+
+        // Lenguaje
+
+        calcular2.Promedio_final_Lenguaje = MathF.Round(
+            (calcular2.Promedio_Inall_Lenguaje * 0.85f) +
+            (calcular2.Promedio_Avanzo_Lenguaje * 0.15f),
+            2
+        );
+
+
+        // Promedio general
+
+        calcular2.Promedio_Final = MathF.Round(
+            (
+                calcular2.Promedio_final_Mate +
+                calcular2.Promedio_final_Ciencias +
+                calcular2.Promedio_final_Sociales +
+                calcular2.Promedio_final_Lenguaje
+            ) / 4,
+            2
+        );
+
+
+        // Determinar estado
+
+        calcular2.Estado = calcular2.Promedio_Final >= 6;
+
+
+        // Indicar que los cálculos ya fueron realizados
+
+        calculado = true;
+
+        // Limpiar mensaje anterior
+
+        mensaje = "";
+    }
+
+}
+

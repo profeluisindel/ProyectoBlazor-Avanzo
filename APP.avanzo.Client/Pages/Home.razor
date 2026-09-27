@@ -1,0 +1,126 @@
+﻿@page "/"
+
+<PageTitle>APP-avanzo</PageTitle>
+
+<div class="container py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="text-center mb-5">
+
+        <h1 class="display-5 fw-bold">
+            Instituto Nacional del Puerto de La Libertad
+        </h1>
+
+        <p class="fs-4 text-muted">
+            Aplicación para verificar resultados académicos
+            incluyendo la prueba AVANZO
+        </p>
+
+    </div>
+
+
+    <!-- OPCIONES -->
+    <div class="container">
+
+        <!-- CÁLCULO -->
+        <div class="row align-items-center mb-4">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/icons/calculator.svg"
+                     class="img-fluid"
+                     alt="Calculadora"
+                     style="width: 150px; height: 150px;">
+
+            </div>
+
+            <div class="col-md-9">
+
+                <NavLink href="/calculo-verificacion"
+                         class="text-decoration-none text-dark">
+
+                    <h2 class="fw-bold">
+                        Calcular
+                    </h2>
+
+                    <p class="fs-4">
+                        Aquí puedes verificar cuánto necesitas de nota
+                        en la prueba AVANZO para aprobar la materia.
+                        Debes de tener ya tu promedio institucional.
+                    </p>
+
+                </NavLink>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROMEDIO FINAL -->
+        <div class="row align-items-center mb-4">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/icons/bar-chart.svg"
+                     class="img-fluid"
+                     alt="Gráfico de resultados"
+                     style="width: 150px; height: 150px;">
+
+            </div>
+
+            <div class="col-md-9">
+
+                <NavLink href="/promedio-final"
+                         class="text-decoration-none text-dark">
+
+                    <h2 class="fw-bold">
+                        Promedio final
+                    </h2>
+
+                    <p class="fs-4">
+                        Aquí puedes verificar si has pasado la materia.
+                        Ya debes de saber la nota institucional final
+                        y la nota de la prueba AVANZO.
+                    </p>
+
+                </NavLink>
+
+            </div>
+
+        </div>
+
+
+        <!-- LISTAR -->
+        <div class="row align-items-center mb-4">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/icons/list-check.svg"
+                     class="img-fluid"
+                     alt="Lista de resultados"
+                     style="width: 150px; height: 150px;">
+
+            </div>
+
+            <div class="col-md-9">
+
+                <NavLink href="/listar-promedios"
+                         class="text-decoration-none text-dark">
+
+                    <h2 class="fw-bold">
+                        Listar
+                    </h2>
+
+                    <p class="fs-4">
+                        Lista los datos guardados para recordatorio.
+                    </p>
+
+                </NavLink>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

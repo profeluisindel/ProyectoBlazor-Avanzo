@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+[Dd]ebug/
+[Rr]elease/
+*.log	
