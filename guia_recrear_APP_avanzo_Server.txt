@@ -1,0 +1,352 @@
+GUIA PARA RECREAR APP.AVANZO.SERVER
+===================================
+
+Objetivo
+--------
+Construir paso a paso una API web con ASP.NET Core .NET 10, PostgreSQL y
+Entity Framework Core. La API guarda registros de calificaciones y ofrece
+operaciones HTTP para consultarlos y agregarlos.
+
+Esta guía se basa en la estructura actual de APP.avanzo.Server. Los comandos
+están escritos para Linux y se deben ejecutar en una terminal.
+
+
+1. Preparar las herramientas
+----------------------------
+Instalar y comprobar:
+
+- .NET SDK 10. El proyecto actual tiene como destino net10.0.
+- PostgreSQL, iniciado y accesible.
+- Un usuario de PostgreSQL con permiso para crear o actualizar la base de datos.
+- Un editor o terminal para escribir y ejecutar el proyecto.
+
+Comprobar .NET:
+
+    dotnet --version
+
+Debe mostrar una versión 10.x. Comprobar PostgreSQL:
+
+    psql --version
+
+Si psql no está instalado, se puede instalar el cliente de PostgreSQL sin
+instalar el servidor; para ejecutar la aplicación también se necesita un
+servidor PostgreSQL disponible, local o remoto.
+
+
+2. Crear el proyecto de API
+---------------------------
+Desde la carpeta donde se guardará el proyecto:
+
+    dotnet new webapi -o APP-avanzo.Server --framework net10.0
+    cd APP-avanzo.Server
+
+La plantilla crea el proyecto ASP.NET Core y sus archivos iniciales. La API
+que se va a construir usa endpoints mínimos, por lo que no necesita crear
+controladores.
+
+
+3. Instalar las dependencias
+----------------------------
+Instalar la herramienta de línea de comandos de Entity Framework Core. La
+versión de la herramienta debe corresponder a EF Core 10:
+
+    dotnet tool install --global dotnet-ef --version 10.0.12
+
+Si ya está instalada, actualizarla:
+
+    dotnet tool update --global dotnet-ef --version 10.0.12
+
+Agregar los paquetes al proyecto:
+
+    dotnet add package Microsoft.AspNetCore.OpenApi --version 10.0.12
+    dotnet add package Microsoft.EntityFrameworkCore.Design --version 10.0.12
+    dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 10.0.3
+
+Para qué sirve cada uno:
+
+- Microsoft.AspNetCore.OpenApi: publica el documento OpenAPI de la API.
+- Microsoft.EntityFrameworkCore.Design: permite crear migraciones y actualizar
+  la base de datos desde las herramientas de EF Core.
+- Npgsql.EntityFrameworkCore.PostgreSQL: conecta EF Core con PostgreSQL.
+- dotnet-ef: proporciona los comandos dotnet ef.
+
+La versión encontrada en el proyecto es EF Core Design 10.0.12 y el proveedor
+Npgsql 10.0.3. Si se usan otras versiones, mantenerlas compatibles dentro de
+la versión principal 10 y comprobar la restauración con dotnet restore.
+
+
+4. Crear la entidad que se guardará
+-----------------------------------
+Crear la carpeta data y dentro el archivo Calcular2.cs. La entidad representa
+un registro de calificaciones. Id es la clave principal; cada materia tiene
+promedio inicial, promedio de avance y promedio final; también se guardan el
+promedio general y el estado.
+
+Código de referencia:
+
+    using System.ComponentModel.DataAnnotations;
+
+    namespace APP_avanzo.Server.data;
+
+    public class Calcular2
+    {
+        public int Id { get; set; }
+        public string? Nombre { get; set; }
+
+        [Required(ErrorMessage = "El promedio inicial de Matemáticas es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Mate { get; set; } = 6;
+        public float Promedio_Avanzo_Mate { get; set; }
+        public float Promedio_final_Mate { get; set; }
+
+        [Required(ErrorMessage = "El promedio inicial de Ciencias es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Ciencias { get; set; } = 6;
+        public float Promedio_Avanzo_Ciencias { get; set; }
+        public float Promedio_final_Ciencias { get; set; }
+
+        [Required(ErrorMessage = "El promedio inicial de Sociales es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Sociales { get; set; } = 6;
+        public float Promedio_Avanzo_Sociales { get; set; }
+        public float Promedio_final_Sociales { get; set; }
+
+        [Required(ErrorMessage = "El promedio inicial de Lenguaje es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Lenguaje { get; set; } = 6;
+        public float Promedio_Avanzo_Lenguaje { get; set; }
+        public float Promedio_final_Lenguaje { get; set; }
+
+        public float Promedio_Final { get; set; }
+        public bool Estado { get; set; }
+    }
+
+Nota: los nombres se mantienen como están en el proyecto analizado para que
+la entidad y la tabla coincidan. En un proyecto nuevo conviene acordar una
+convención de nombres y usarla de forma consistente.
+
+
+5. Crear el contexto de Entity Framework
+-----------------------------------------
+En la carpeta data, crear AplicationDBContext.cs. El DbContext representa la
+sesión con la base de datos y DbSet indica que Calcular2 se almacenará como
+una colección llamada Calculos.
+
+    using Microsoft.EntityFrameworkCore;
+
+    namespace APP_avanzo.Server.data;
+
+    public class AplicationDBContext(
+        DbContextOptions<AplicationDBContext> options) : DbContext(options)
+    {
+        public DbSet<Calcular2> Calculos => Set<Calcular2>();
+    }
+
+
+6. Configurar la conexión a PostgreSQL
+--------------------------------------
+Agregar una cadena de conexión bajo ConnectionStrings en
+appsettings.Development.json. Sustituir los valores de ejemplo por los de la
+instalación local:
+
+    {
+      "ConnectionStrings": {
+        "Cnn": "Host=localhost;Port=5432;Database=appavanzo;Username=USUARIO;Password=CONTRASENA"
+      }
+    }
+
+No reutilizar la contraseña de otra persona ni guardar credenciales reales en
+un repositorio. Para producción, guardar secretos mediante variables de
+entorno o un gestor de secretos. Asegurarse de que la base de datos y el
+usuario existan, y de que el usuario tenga los permisos necesarios.
+
+El nombre Cnn debe coincidir con el nombre que se consulta en Program.cs.
+
+
+7. Registrar servicios y configurar la aplicación
+--------------------------------------------------
+En Program.cs, registrar CORS, OpenAPI y el DbContext. Después, construir la
+aplicación, activar CORS, exponer OpenAPI solo en desarrollo y activar HTTPS.
+
+    using APP_avanzo.Server.data;
+    using Microsoft.EntityFrameworkCore;
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("BlazorClient", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
+    builder.Services.AddOpenApi();
+
+    var connectionString =
+        builder.Configuration.GetConnectionString("Cnn");
+
+    builder.Services.AddDbContext<AplicationDBContext>(options =>
+        options.UseNpgsql(connectionString));
+
+    var app = builder.Build();
+
+    app.UseCors("BlazorClient");
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+    }
+
+    app.UseHttpsRedirection();
+
+    // Los endpoints se agregan en el siguiente paso.
+
+    app.Run();
+
+En producción, restringir CORS al origen real del cliente; AllowAnyOrigin
+permite solicitudes desde cualquier origen y es una configuración amplia.
+
+
+8. Agregar los endpoints HTTP
+-----------------------------
+Agregar estos endpoints antes de app.Run() en Program.cs:
+
+    app.MapGet("/api/calculos", async (AplicationDBContext db) =>
+    {
+        var calculos = await db.Calculos
+            .AsNoTracking()
+            .ToListAsync();
+
+        return Results.Ok(calculos);
+    });
+
+    app.MapPost("/api/calculos",
+        async (Calcular2 calcular, AplicationDBContext db) =>
+        {
+            db.Calculos.Add(calcular);
+            await db.SaveChangesAsync();
+
+            return Results.Created($"/api/calculos/{calcular.Id}", calcular);
+        });
+
+El GET devuelve todos los registros. AsNoTracking evita que EF Core haga un
+seguimiento de cambios porque esta operación solo lee datos. El POST recibe
+un objeto JSON, lo agrega y guarda los cambios; Created responde con estado
+HTTP 201 y la ruta del registro creado.
+
+
+9. Preparar el entorno para crear la migración
+----------------------------------------------
+La migración convierte el modelo C# en instrucciones para crear o actualizar
+las tablas de PostgreSQL. Primero compilar y restaurar paquetes:
+
+    dotnet restore
+    dotnet build
+
+En Linux, indicar Development antes de ejecutar los comandos de EF porque la
+cadena Cnn de esta guía está en appsettings.Development.json:
+
+    export ASPNETCORE_ENVIRONMENT=Development
+
+En PowerShell, el equivalente es:
+
+    $env:ASPNETCORE_ENVIRONMENT = "Development"
+
+La variable debe permanecer definida en la misma terminal mientras se corren
+los comandos de migración y se inicia la aplicación.
+
+
+10. Crear y aplicar la migración
+-------------------------------
+Desde la carpeta APP-avanzo.Server:
+
+    dotnet ef migrations add Inicial
+    dotnet ef database update
+
+El primer comando genera una carpeta Migrations con el cambio inicial del
+modelo y un snapshot. El segundo aplica la migración a PostgreSQL y crea la
+tabla Calculos. Cada vez que se cambie la entidad, crear una nueva migración
+con un nombre descriptivo y volver a ejecutar database update.
+
+Si se ejecuta desde la carpeta raíz en vez de dentro del proyecto, indicar el
+proyecto explícitamente:
+
+    dotnet ef migrations add Inicial --project APP-avanzo.Server
+    dotnet ef database update --project APP-avanzo.Server
+
+Si aparece un error de conexión, comprobar PostgreSQL, el nombre de la base,
+usuario, contraseña y que ASPNETCORE_ENVIRONMENT sea Development. Si aparece
+que no se encuentra dotnet-ef, revisar la instalación de la herramienta y el
+PATH de las herramientas globales de .NET.
+
+
+11. Ejecutar el servidor
+------------------------
+Desde la carpeta del proyecto:
+
+    dotnet run --launch-profile http
+
+El perfil HTTP del proyecto analizado usa http://localhost:5036. El perfil
+HTTPS usa https://localhost:7094 y también publica HTTP en el puerto 5036.
+Mantener la terminal abierta mientras se prueba la API.
+
+
+12. Probar las operaciones
+--------------------------
+Consultar la lista de registros:
+
+    curl http://localhost:5036/api/calculos
+
+Insertar un registro de prueba:
+
+    curl -i -X POST http://localhost:5036/api/calculos \
+      -H 'Content-Type: application/json' \
+      -d '{"nombre":"Estudiante demo","promedio_Inall_Mate":8,"promedio_Avanzo_Mate":9,"promedio_final_Mate":8.5,"promedio_Inall_Ciencias":8,"promedio_Avanzo_Ciencias":9,"promedio_final_Ciencias":8.5,"promedio_Inall_Sociales":8,"promedio_Avanzo_Sociales":9,"promedio_final_Sociales":8.5,"promedio_Inall_Lenguaje":8,"promedio_Avanzo_Lenguaje":9,"promedio_final_Lenguaje":8.5,"promedio_Final":8.5,"estado":true}'
+
+Volver a ejecutar el GET para comprobar que el registro quedó guardado. En
+desarrollo, OpenAPI se publica en /openapi/v1.json.
+
+
+13. Entender y revisar las validaciones
+---------------------------------------
+La entidad del proyecto tiene atributos Required y Range para algunos
+promedios iniciales. En la versión actual, los endpoints mínimos no agregan
+explícitamente un mecanismo de validación de Data Annotations; por tanto, no
+se debe asumir que esos atributos rechazan automáticamente datos inválidos.
+Si se quiere que el servidor aplique las reglas, agregar y probar la
+validación de Minimal APIs para .NET 10 o validar explícitamente antes de
+guardar. Confirmar también si cada campo debe aceptar cero, pues los tipos
+float no anulables tienen un valor predeterminado y Required no sustituye una
+regla de negocio completa.
+
+
+14. Lista de comprobación final
+-------------------------------
+- dotnet build termina sin errores.
+- PostgreSQL está iniciado y la cadena Cnn apunta a la base correcta.
+- dotnet ef migrations add genera la migración Inicial.
+- dotnet ef database update crea la tabla Calculos.
+- El servidor inicia en el puerto esperado.
+- GET /api/calculos devuelve una respuesta JSON.
+- POST /api/calculos crea un registro y responde HTTP 201.
+- Un GET posterior muestra el registro creado.
+- Las credenciales no quedan publicadas en el control de versiones.
+
+
+Resumen del orden de trabajo
+----------------------------
+1. Instalar .NET 10 y PostgreSQL.
+2. Crear el proyecto Web API.
+3. Instalar dotnet-ef y los paquetes necesarios.
+4. Crear la entidad Calcular2.
+5. Crear AplicationDBContext.
+6. Configurar la conexión a PostgreSQL.
+7. Registrar servicios en Program.cs.
+8. Crear los endpoints GET y POST.
+9. Restaurar paquetes y compilar.
+10. Seleccionar Development para que se lea la conexión configurada.
+11. Crear y aplicar la migración.
+12. Ejecutar el servidor y probar ambos endpoints.

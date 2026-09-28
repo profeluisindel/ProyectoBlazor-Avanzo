@@ -1,0 +1,381 @@
+GUIA PARA RECREAR APP.AVANZO.CLIENT
+===================================
+
+Objetivo
+--------
+Crear un cliente web con Blazor WebAssembly en .NET 10. El navegador mostrará
+páginas para calcular promedios, capturar calificaciones y listar los
+registros guardados por la API APP.avanzo.Server.
+
+Esta guía se basa en el cliente existente. Está escrita para Linux y asume que
+el servidor API ya está creado y puede ejecutarse en http://localhost:5036.
+Los comandos se ejecutan en una terminal.
+
+
+1. Preparar el entorno
+----------------------
+Instalar el SDK de .NET 10 y comprobarlo:
+
+    dotnet --version
+
+Debe mostrar una versión 10.x. El servidor PostgreSQL no se instala en el
+cliente; corresponde al proyecto Server. Para probar el cliente con datos, la
+API y su base de datos deben estar funcionando.
+
+
+2. Crear el proyecto Blazor WebAssembly
+---------------------------------------
+Desde la carpeta donde se guardará la solución:
+
+    dotnet new blazorwasm -o APP-avanzo.Client --framework net10.0
+    cd APP-avanzo.Client
+
+La plantilla crea la aplicación cliente, la página inicial, el enrutador, el
+layout, los estilos base y una instancia de desarrollo para ejecutar la web.
+El proyecto analizado apunta a net10.0.
+
+
+3. Revisar los paquetes
+-----------------------
+La plantilla agrega las dependencias necesarias. En el cliente analizado son:
+
+- Microsoft.AspNetCore.Components.WebAssembly 10.0.12: runtime y componentes
+  de Blazor WebAssembly.
+- Microsoft.AspNetCore.Components.WebAssembly.DevServer 10.0.12: servidor de
+  desarrollo local.
+
+No se encontró un paquete NuGet adicional para Bootstrap: los archivos de
+Bootstrap vienen en wwwroot/lib de la plantilla. Tampoco se necesita instalar
+un cliente HTTP adicional; HttpClient y System.Net.Http.Json forman parte de
+las dependencias de .NET usadas por Blazor.
+
+Restaurar y revisar el estado inicial:
+
+    dotnet restore
+    dotnet build
+
+Si se desea fijar exactamente las versiones observadas, revisar el archivo
+APP-avanzo.Client.csproj y mantener ambos paquetes WebAssembly en versión
+10.0.12.
+
+
+4. Entender la estructura generada
+----------------------------------
+Los archivos principales que se irán creando o completando son:
+
+- Program.cs: registra componentes raíz, HttpClient y servicios.
+- App.razor: configura el enrutamiento de páginas.
+- _Imports.razor: concentra los espacios de nombres compartidos por Razor.
+- Layout/MainLayout.razor: estructura común de las páginas.
+- Layout/NavMenu.razor: enlaces de navegación.
+- Pages/: una página Razor por flujo de la aplicación.
+- datos/: modelos y clases para consumir la API.
+- wwwroot/index.html: documento inicial y referencias a CSS y runtime.
+
+Blazor busca los componentes de páginas con la directiva @page. Cada URL debe
+coincidir exactamente con una ruta declarada en una página.
+
+
+5. Configurar el enrutador y los imports
+----------------------------------------
+En App.razor, configurar Router para buscar páginas en el ensamblado del
+cliente y usar MainLayout como layout por defecto. Agregar una página NotFound
+para direcciones que no tengan componente.
+
+Código de referencia para App.razor:
+
+    <Router AppAssembly="@typeof(App).Assembly"
+            NotFoundPage="typeof(Pages.NotFound)">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData"
+                       DefaultLayout="@typeof(MainLayout)" />
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+    </Router>
+
+En _Imports.razor, agregar los espacios de nombres que se repiten en páginas:
+
+    @using System.Net.Http
+    @using System.Net.Http.Json
+    @using Microsoft.AspNetCore.Components.Forms
+    @using Microsoft.AspNetCore.Components.Routing
+    @using Microsoft.AspNetCore.Components.Web
+    @using Microsoft.JSInterop
+    @using APP_avanzo.Client
+    @using APP_avanzo.Client.Layout
+
+Los imports de la plantilla pueden conservarse; agregar solo los que se
+necesiten para los modelos y servicios del proyecto.
+
+
+6. Crear el modelo del cliente
+------------------------------
+Crear la carpeta datos y el archivo Calcular2.cs. Este modelo representa los
+datos de calificaciones que el formulario enviará y que la tabla mostrará.
+Mantener los nombres y tipos compatibles con la entidad Calcular2 del Server,
+porque el JSON se intercambia entre ambos proyectos.
+
+Ejemplo reducido del modelo:
+
+    using System.ComponentModel.DataAnnotations;
+
+    namespace APP.avanzo.Client.datos;
+
+    public class Calcular2
+    {
+        public string? Nombre { get; set; }
+
+        [Required(ErrorMessage = "El promedio final es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Mate { get; set; } = 6;
+        public float Promedio_Avanzo_Mate { get; set; }
+        public float Promedio_final_Mate { get; set; }
+
+        public float Promedio_Inall_Ciencias { get; set; } = 6;
+        public float Promedio_Avanzo_Ciencias { get; set; }
+        public float Promedio_final_Ciencias { get; set; }
+
+        public float Promedio_Inall_Sociales { get; set; } = 6;
+        public float Promedio_Avanzo_Sociales { get; set; }
+        public float Promedio_final_Sociales { get; set; }
+
+        public float Promedio_Inall_Lenguaje { get; set; } = 6;
+        public float Promedio_Avanzo_Lenguaje { get; set; }
+        public float Promedio_final_Lenguaje { get; set; }
+
+        public float Promedio_Final { get; set; }
+        public bool Estado { get; set; }
+    }
+
+Repetir Required y Range en los promedios institucionales de las otras
+materias si se desea el mismo comportamiento de validación en esos campos.
+El modelo del cliente no necesita declarar Id para enviar un registro nuevo;
+el servidor crea ese identificador. Para mostrarlo en el cliente, se puede
+agregar la propiedad cuando sea necesaria.
+
+También se usa un modelo separado Calcular.cs para la página que calcula la
+nota Avanzo necesaria en una materia:
+
+    using System.ComponentModel.DataAnnotations;
+
+    namespace APP.avanzo.Client.datos;
+
+    public class Calcular
+    {
+        public string? Materia { get; set; }
+
+        [Required(ErrorMessage = "El promedio es obligatorio")]
+        [Range(6, 10, ErrorMessage = "La nota debe estar entre 6 y 10")]
+        public float Promedio_Inall_Final { get; set; } = 6;
+
+        public float Promedio_Avanzo_Requerido { get; set; }
+    }
+
+
+7. Registrar HttpClient y el servicio de datos
+----------------------------------------------
+En Program.cs, registrar los componentes y el cliente HTTP. El cliente actual
+usa la dirección de la API en el puerto 5036:
+
+    using Microsoft.AspNetCore.Components.Web;
+    using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+    using APP_avanzo.Client;
+    using APP.avanzo.Client.datos;
+
+    var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+    builder.RootComponents.Add<App>("#app");
+    builder.RootComponents.Add<HeadOutlet>("head::after");
+
+    builder.Services.AddScoped(sp =>
+        new HttpClient { BaseAddress = new Uri("http://localhost:5036") });
+
+    builder.Services.AddScoped<Calcular2Servicios>();
+
+    await builder.Build().RunAsync();
+
+La URL base debe apuntar al servidor que está ejecutándose. Si el servidor usa
+otro host, puerto o protocolo, actualizar esta dirección. En HTTPS, el
+navegador puede bloquear llamadas desde una página HTTPS hacia una API HTTP
+(contenido mixto); ejecutar ambos en HTTP durante desarrollo o configurar
+ambos para HTTPS y revisar CORS del servidor.
+
+Crear datos/Calcular2Servicios.cs para centralizar la consulta GET:
+
+    using System.Net.Http.Json;
+
+    namespace APP.avanzo.Client.datos;
+
+    public class Calcular2Servicios(HttpClient http)
+    {
+        public async Task<List<Calcular2>> Listar()
+        {
+            return await http.GetFromJsonAsync<List<Calcular2>>(
+                "api/calculos") ?? new List<Calcular2>();
+        }
+    }
+
+La ruta relativa api/calculos se combina con BaseAddress. El Server debe
+exponer un endpoint GET con esa misma ruta. El proyecto actual envía el POST
+desde la página con HttpClient.PostAsJsonAsync; también se puede añadir ese
+método al servicio para dejar toda la comunicación HTTP en una sola clase.
+
+
+8. Crear el layout y el menú
+----------------------------
+MainLayout.razor define la estructura compartida e incluye NavMenu.razor. En
+el menú, agregar enlaces a cada página creada y mantenerlos iguales a sus
+rutas @page. La plantilla ya incorpora Bootstrap para clases como container,
+row, btn, table y alert.
+
+Rutas declaradas en las páginas existentes del proyecto:
+
+- Inicio: @page "/"
+- Cálculo de nota necesaria: @page "/Page_calcular"
+- Captura de promedios: @page "/Page_final"
+- Listado: @page "/listar"
+
+Importante: en la página Home actual, algunos enlaces apuntan a
+/calculo-verificacion, /promedio-final y /listar-promedios, pero esas rutas no
+coinciden con las rutas declaradas arriba. Al recrear, decidir las rutas
+definitivas y hacer que todos los enlaces del inicio y del menú coincidan.
+Probar cada enlace para detectar rápidamente cualquier diferencia.
+
+
+9. Crear la página de inicio
+----------------------------
+Crear Pages/Home.razor con @page "/". Presentar los tres flujos de la
+aplicación y enlazar cada opción a la ruta real del componente:
+
+- Calcular: calcula qué nota de Avanzo se necesita para alcanzar el mínimo.
+- Promedio final: captura calificaciones, calcula los resultados y los guarda.
+- Listar: consulta los registros guardados en el servidor.
+
+El inicio actual usa Bootstrap y SVG de iconos servidos desde jsDelivr. Esos
+iconos requieren conexión a Internet. No se observó un paquete NuGet separado
+de iconos en el cliente.
+
+
+10. Crear la página de cálculo individual
+-----------------------------------------
+Crear Pages/Page_calcular.razor y declarar la ruta elegida, por ejemplo
+@page "/Page_calcular". Usar EditForm, DataAnnotationsValidator, InputText,
+InputNumber y ValidationMessage para capturar la materia y el promedio
+institucional.
+
+La ponderación del proyecto es 85% promedio institucional y 15% Avanzo. Si la
+nota mínima para aprobar es 6, la nota requerida se obtiene con:
+
+    nota requerida = techo((6 - promedio institucional * 0.85) / 0.15)
+
+Usar Math.Ceiling para redondear hacia arriba y evitar mostrar una nota menor
+a la necesaria. Si el resultado es negativo, mostrar cero. Añadir un botón
+para limpiar el modelo y volver a comprobar con ejemplos conocidos.
+
+
+11. Crear el formulario de promedio final
+-----------------------------------------
+Crear Pages/Page_final.razor con su ruta. Inyectar HttpClient y usar
+Calcular2 como modelo del formulario. Con EditForm y OnValidSubmit se activa
+la validación del lado cliente.
+
+El formulario actual captura nombre y tres notas (INALL, Avanzo y final) para
+Matemáticas, Ciencias, Sociales y Lenguaje. Un botón Calcular ejecuta los
+cálculos; el botón Guardar permanece desactivado hasta haber calculado.
+
+Para cada materia, calcular el promedio ponderado:
+
+    promedio final = redondear(INALL * 0.85 + Avanzo * 0.15, 2)
+
+En C#, el patrón usado es MathF.Round(valor, 2). Luego calcular el promedio
+general como el promedio aritmético de los cuatro resultados:
+
+    Promedio_Final = redondear((Mate + Ciencias + Sociales + Lenguaje) / 4, 2)
+
+El estado del registro se determina así:
+
+    Estado = Promedio_Final >= 6
+
+Al guardar, serializar el modelo a JSON y hacer POST al endpoint del Server:
+
+    var respuesta = await Http.PostAsJsonAsync("api/calculos", calcular2);
+
+Si la respuesta es exitosa, mostrar confirmación y limpiar el formulario. Si
+falla, mostrar el error de forma clara. En producción también conviene
+capturar excepciones de red para que la página no termine en error inesperado.
+
+
+12. Crear el listado de registros
+---------------------------------
+Crear Pages/Listar.razor y declarar @page "/listar". Inyectar
+Calcular2Servicios. En OnInitializedAsync, llamar Listar() y representar los
+resultados en una tabla Bootstrap.
+
+Controlar explícitamente estos estados de la página:
+
+- cargando: mostrar un indicador mientras llega la respuesta.
+- error: mostrar un mensaje cuando falle la comunicación.
+- lista vacía: informar que aún no existen registros.
+- resultados: mostrar nombre, promedios finales, promedio general y estado.
+
+Para el estado, mostrar Aprobado cuando Estado sea true y Reprobado cuando
+sea false. Dar formato a las notas, por ejemplo con ToString("0.00").
+
+
+13. Ejecutar y probar cliente y servidor
+----------------------------------------
+Primero, iniciar PostgreSQL y el proyecto Server. En una terminal:
+
+    cd ../APP.avanzo.Server
+    dotnet run --launch-profile http
+
+El servidor del proyecto analizado utiliza http://localhost:5036. Dejarlo
+ejecutándose y abrir una segunda terminal para el cliente:
+
+    cd ../APP.avanzo.Client
+    dotnet run --launch-profile http
+
+El perfil HTTP actual del cliente utiliza http://localhost:5287. Abrir esa
+dirección en el navegador si no se abre automáticamente. El perfil HTTPS
+utiliza https://localhost:7251; recordar que la URL de HttpClient y CORS deben
+ser compatibles con el protocolo de la página.
+
+Comprobar en orden:
+
+1. La página de inicio abre y muestra el menú.
+2. Cada enlace navega a un componente existente.
+3. El cálculo individual produce una nota requerida razonable.
+4. La captura calcula los cuatro promedios, el general y el estado.
+5. Guardar envía el JSON y muestra confirmación.
+6. Listar recupera el registro recién guardado desde GET /api/calculos.
+7. Probar también el estado vacío y un error de API detenida o inaccesible.
+
+
+14. Diagnóstico básico
+----------------------
+- Error de CORS: confirmar que el Server permite el origen del cliente y que
+  la política CORS se activa en el pipeline.
+- Error de conexión: revisar que el Server esté ejecutándose y que BaseAddress
+  apunte al host, puerto y protocolo correctos.
+- Contenido mixto: no llamar una API HTTP desde una página HTTPS; alinear los
+  protocolos durante desarrollo.
+- 404 al navegar: comparar el href del enlace con la directiva @page exacta.
+- JSON no esperado: comparar nombres y tipos de Calcular2 en el cliente y el
+  servidor, además de la ruta /api/calculos.
+- El GET funciona pero guardar no: comprobar que el Server tenga el endpoint
+  POST, que reciba el mismo modelo y que la base de datos esté accesible.
+
+
+Resumen del orden de trabajo
+----------------------------
+1. Instalar .NET 10 y crear el proyecto Blazor WebAssembly.
+2. Restaurar paquetes y compilar la plantilla.
+3. Configurar App.razor, imports, layout y navegación.
+4. Crear los modelos Calcular y Calcular2.
+5. Registrar HttpClient con la URL del Server.
+6. Crear el servicio que consume GET /api/calculos.
+7. Crear la página de inicio y las páginas de cálculo.
+8. Calcular promedios y enviar el formulario por POST.
+9. Consultar y mostrar la lista de registros.
+10. Ejecutar primero el Server y luego el Client.
+11. Probar rutas, cálculos, guardado, listado, CORS y errores.

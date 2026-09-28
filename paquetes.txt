@@ -13,61 +13,9 @@ MIgraciones
     dotnet ef migrations add Inicio
     dotnet ef database update
 
-AplicationDBContext
-
-namespace prueba2
-{
-    public class AplicationBdContext: DbContext
-    {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(
-                "Host=localhost;Port=5432;Database=EJEntity;Username=postgres;Password=admin"
-            );
-        }
-
-        public DbSet<Clientes> Clientes { get; set; }
-    }
-}
-
-Codigo del program queda asi
-
-
-using prueba2;
-
-using (var context = new AplicationBdContext())
-{
-    // Creamos el objeto
-    var cliente1 = new Clientes();
-
-    cliente1.Nombre = "Luisito chulo";
-    cliente1.FechaRegistro = new DateTime(
-        2019, 01, 01, 0, 0, 0, DateTimeKind.Utc
-    );
-
-    // Agregamos el nuevo registro
-    context.Clientes.Add(cliente1);
-
-    // Guardamos el registro
-    context.SaveChanges();
-}
 
 
 
-Otro registro.
 
-   // Creamos el objeto
-    var cliente1 = new Clientes();
 
-    cliente1.Nombre = "Jorge Rodriguez";
-    cliente1.FechaRegistro = new DateTime(
-        2019, 02, 02, 0, 0, 0, DateTimeKind.Utc
-    );
 
-    // Agregamos el nuevo registro
-    context.Clientes.Add(cliente1);
-
-    // Guardamos el registro
-    context.SaveChanges();
-
-    Console.WriteLine("Registro agregado correctamente");

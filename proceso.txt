@@ -7,36 +7,29 @@ dotnet new blazorwasm -o APP-avanzo.Client --framework net10.0
 dotnet new webapi -o APP-avanzo.Server --framework net10.0
 
 
-Proceso para crear la parte de backEnd
-1. Crear proyecto .NET 10
-          ↓
-2. PostgreSQL
-          ↓
-3. Instalar EF Core 10
-          ↓
-4. Instalar Npgsql
-          ↓
-5. Configurar conexión
-          ↓
-6. Crear modelo Calcular2
-          ↓
-7. Crear ApplicationDbContext
-          ↓
-8. Registrar DbContext
-          ↓
-9. Crear migración
-          ↓
-10. Actualizar base de datos
-          ↓
-11. Crear GET
-          ↓
-12. Crear POST
-          ↓
-13. Ejecutar API
-          ↓
-14. Probar GET y POST
-          ↓
-15. Verificar datos en PostgreSQL
+
+
+---------paquetes para instalar -----------------------------
+
+
+Trabajar con PostgreSQL - paquetes a install
+
+    dotnet tool install --global dotnet-ef
+
+    dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+
+    dotnet add package Microsoft.EntityFrameworkCore.Design
+
+
+MIgraciones
+
+    dotnet ef migrations add Inicio
+    dotnet ef database update
+
+
+
+--- - -- - - - - Porceso para crear el backEnd - - - - -- - - -
+
 
 
 
